@@ -1,0 +1,23 @@
+[ INFO] [1504089554.234053044]: Camera pose with respect to `world':
+position: 
+  x: -0.725586
+  y: -0.281982
+  z: 2.19081
+orientation: 
+  x: 0.999988
+  y: -0.00468232
+  z: -0.00127072
+  w: 6.13786e-05
+
+[ INFO] [1504089554.234222968]: Pattern pose with respect to `ee_link':
+position: 
+  x: 0.087357
+  y: 0.00180296
+  z: 0.0327671
+orientation: 
+  x: 0.999991
+  y: -0.00118958
+  z: -0.00411419
+  w: -3.84019e-05
+
+[ INFO] [1504089554.234472720]: Axis angle: {x: 0.999991, y: -0.001190, z: -0.004114} 3.14167

@@ -1,22 +1,33 @@
 {
 	"Capture": {
 		"AutoBlackLevel": true,
-		"AutoExposure": false,
-		"AutoGain": false,
+		"AutoExposure": true,
+		"AutoGain": true,
 		"Binning": 1,
 		"BlackLevelOffset": 0.454901960784313719,
-		"Exposure": 2.84010580296896098,
+		"BlackLevelOffsetCalibration": 0,
+		"Exposure": 9.99975024741340413,
 		"Gain": 1,
 		"GainBoost": false,
-		"HardwareGamma": false,
+		"HardwareGamma": true,
+		"ImageBuffer": {
+			"Count": 0,
+			"OverflowPolicy": "DiscardOld",
+			"Size": 1
+		},
 		"PixelClock": 24,
 		"TargetBrightness": 128,
-		"TriggerMode": "Software",
-		"Triggered": true
+		"TriggerDelay": 0,
+		"TriggerMode": "Software"
 	},
 	"IO": {
-		"Input": false,
-		"Output": false
+		"Input": true,
+		"Output": {
+			"Duration": 0,
+			"DutyCycle": 1,
+			"Frequency": 1,
+			"Mode": "Low"
+		}
 	},
 	"Overlay": {
 		"Text": {

@@ -44,7 +44,10 @@ private:
 		camera_guess  = boost::none;
 		pattern_guess = boost::none;
 		robot_poses.clear();
+		num_recorded_patterns = 0;
 	}
+
+	int num_recorded_patterns;
 
 protected:
 	using Point = pcl::PointXYZ;
@@ -335,13 +338,14 @@ protected:
 			// record a pattern
 			ensenso_camera->recordCalibrationPattern();
 
-			// add robot pose to list of poses
-			robot_poses.push_back(dr::toEigen(req.pose));
+			++num_recorded_patterns;
 		} catch (dr::NxError const & e) {
 			ROS_ERROR_STREAM("Failed to record calibration pattern. " << e.what());
 			return false;
 		}
 
+		// add robot pose to list of poses
+		robot_poses.push_back(dr::toEigen(req.pose));
 		ROS_INFO_STREAM("Successfully recorded a calibration sample.");
 		return true;
 	}
@@ -355,6 +359,8 @@ protected:
 
 		try {
 			// perform calibration
+			ROS_INFO_STREAM("Number of poses provided: " << robot_poses.size());
+			ROS_INFO_STREAM("Number of recorded patterns: " << num_recorded_patterns);
 			dr::Ensenso::CalibrationResult calibration =
 				ensenso_camera->computeCalibration(robot_poses, camera_moving, camera_guess, pattern_guess, camera_moving ? moving_frame : static_frame);
 

@@ -13,7 +13,7 @@
 			<param name="ensenso_param_file"     value="$(find apc16delft_camera)/param/tote/ensenso.json" />
 			<param name="overlay_param_file"     value="$(find apc16delft_camera)/param/tote/overlay.json" />
 			<param name="overlay_param_set_file" value="$(find apc16delft_camera)/param/tote/overlay.ini" />
-			<param name="serial"                 value="160639" type="str" />
+			<param name="serial"                 value="161100" type="str" />
 		</node>
 	</group>
 

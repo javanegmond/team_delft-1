@@ -1,27 +1,39 @@
 {
 	"Capture": {
 		"AbsoluteBlackLevelOffset": 0,
-		"AutoBlackLevel": false,
+		"AutoBlackLevel": true,
 		"AutoExposure": true,
 		"AutoGain": true,
 		"Binning": 1,
-		"BlackLevelOffset": 1,
-		"Exposure": 2.01441511470985146,
+		"BlackLevelOffset": 0.5,
+		"BlackLevelOffsetCalibration": {
+			"Left": 0,
+			"Right": 0
+		},
+		"Exposure": 3.97930004498425571,
 		"FlashDelay": -0.0500000000000000028,
-		"FlexView": 8,
+		"FlexView": false,
 		"FrontLight": false,
 		"Gain": 1,
 		"GainBoost": false,
 		"HardwareGamma": true,
 		"Hdr": false,
+		"ImageBuffer": {
+			"Count": 0,
+			"OverflowPolicy": "DiscardOld",
+			"Size": 1
+		},
 		"MaxFlashTime": 10,
 		"MaxGain": 4,
+		"MultiExposureFactor": 1,
 		"PixelClock": 24,
 		"Projector": true,
 		"TargetBrightness": 80,
+		"TriggerDelay": 0,
 		"TriggerMode": "Software",
-		"Triggered": true,
-		"UseDisparityMapAreaOfInterest": false
+		"Triggered": false,
+		"UseDisparityMapAreaOfInterest": false,
+		"UseRecalibrator": true
 	},
 	"DisparityMap": {
 		"AreaOfInterest": {
@@ -36,94 +48,98 @@
 		},
 		"MeasurementVolume": {
 			"Far": {
-				"DisparityStep": 10.6233040794730673,
+				"DisparityStep": 22.3982097897004238,
 				"LeftBottom": [
-					-278.359866674838543,
-					293.484322775279054,
-					1872.69663540413831
+					-912.664896794197148,
+					767.25804014808898,
+					1545.17136818154518
 				],
 				"LeftTop": [
-					-278.359866674838543,
-					-277.247286531700922,
-					1872.69663540413831
+					-912.664896794197148,
+					-720.974198738024597,
+					1545.17136818154518
 				],
-				"PixelSize": 0.574754893561913338,
+				"PixelSize": 1.4547724720294366,
 				"RightBottom": [
-					361.917084753132883,
-					293.484322775279054,
-					1872.69663540413831
+					947.9890949314522,
+					767.25804014808898,
+					1545.17136818154518
 				],
 				"RightTop": [
-					361.917084753132883,
-					-277.247286531700922,
-					1872.69663540413831
+					947.9890949314522,
+					-720.974198738024597,
+					1545.17136818154518
 				]
 			},
 			"Near": {
-				"DisparityStep": 3.61285765253914892,
+				"DisparityStep": 2.80369942037274633,
 				"LeftBottom": [
-					-162.331289559056387,
-					171.1514276486173,
-					1092.10161439389253
+					-322.901764895066663,
+					271.456671735687905,
+					546.683195117621267
 				],
 				"LeftTop": [
-					-162.331289559056387,
-					-161.682465533054454,
-					1092.10161439389253
+					-322.901764895066663,
+					-255.081401765374551,
+					546.683195117621267
 				],
-				"PixelSize": 0.335180154261502272,
+				"PixelSize": 0.514699974096835211,
 				"RightBottom": [
-					211.059402288257132,
-					171.1514276486173,
-					1092.10161439389253
+					335.399501974785551,
+					271.456671735687905,
+					546.683195117621267
 				],
 				"RightTop": [
-					211.059402288257132,
-					-161.682465533054454,
-					1092.10161439389253
+					335.399501974785551,
+					-255.081401765374551,
+					546.683195117621267
 				]
 			}
 		},
 		"PostProcessing": {
 			"Filling": {
-				"BorderSpread": 1,
-				"RegionSize": 0
+				"BorderSpread": 3,
+				"RegionSize": 150
 			},
-			"MedianFilterRadius": 0,
+			"MedianFilterRadius": 1,
 			"SpeckleRemoval": {
-				"ComponentThreshold": 1,
-				"RegionSize": 133
+				"ComponentThreshold": 3,
+				"RegionSize": 150
 			},
 			"UniquenessOffset": 16,
-			"UniquenessRatio": 0
+			"UniquenessRatio": 10
 		},
-		"Scaling": 0.969999999999999973,
+		"Scaling": 1,
 		"StereoMatching": {
 			"CostScale": -3,
-			"DepthChangeCost": 11,
-			"DepthStepCost": 56,
-			"MinimumDisparity": -83,
+			"DepthChangeCost": 25,
+			"DepthStepCost": 30,
+			"Method": "SgmAlignedAndDiagonal",
+			"MinimumDisparity": -34,
 			"NumberOfDisparities": 128,
-			"OptimizationProfile": "AlignedAndDiagonal",
+			"Padding": true,
 			"PropagationDecay": 3,
-			"ScaledMinimumDisparity": -81,
+			"ScaledMinimumDisparity": -34,
 			"ScaledNumberOfDisparities": 128,
 			"ShadowingThreshold": 1
 		},
 		"ValidRegion": {
 			"LeftTop": [
-				46,
+				93,
 				0
 			],
 			"RightBottom": [
-				1160,
-				993
+				1245,
+				1023
 			]
 		}
 	},
 	"IO": {
-		"Input": false,
-		"Output": 2.01441511470985146
+		"Input": true,
+		"Output": {
+			"Duration": 0,
+			"Mode": "LowActive"
+		}
 	},
 	"Overlay": {
 		"Text": {
