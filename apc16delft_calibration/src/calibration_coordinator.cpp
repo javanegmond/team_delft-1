@@ -135,11 +135,13 @@ class CalibrationNode {
 	tf::TransformListener tf;
 	moveit::planning_interface::MoveGroup move_group;
 
+	ros::AsyncSpinner spinner;
+
 	double random_angle;
 	std::default_random_engine random_generator;
 
 public:
-	CalibrationNode() : move_group(dr::getParam<std::string>(node, "move_group", "manipulator_tool0")) {
+	CalibrationNode() : move_group(dr::getParam<std::string>(node, "move_group", "manipulator")), spinner(1) {
 		robot_frame    = dr::getParam<std::string>(node, "robot_frame");
 		fixed_frame    = dr::getParam<std::string>(node, "fixed_frame");
 		attached_frame = dr::getParam<std::string>(node, "attached_frame");
@@ -166,6 +168,8 @@ public:
 		services.record_calibration     = node.serviceClient<apc16delft_msgs::RecordCalibration>(camera_namespace + "/record_calibration");
 		services.finalize_calibration   = node.serviceClient<apc16delft_msgs::FinalizeCalibration>(camera_namespace + "/finalize_calibration");
 		services.calibration_motion     = node.serviceClient<apc16delft_msgs::ExecuteCalibrationMotion>("/motion_executor/execute_calibration_motion");
+		
+		spinner.start();
 
 		servers.start                   = node.advertiseService("do_calibration", &CalibrationNode::onDoCalibration, this);
 
@@ -218,8 +222,12 @@ private:
 		std::vector<Eigen::Isometry3d> poses = generateRobotPoses(dome_origin);
 		publishPoses(poses, fixed_frame);
 
+		//ROS_INFO_STREAM("Showing poses, abort now if you wish");
+		//ros::Duration(10.0).sleep();
+
 		int failed = 0;
 		int sample = 0;
+		ROS_INFO_STREAM("Number of poses: " << poses.size());
 		// Move to each pose in turn and record data.
 		for (Eigen::Isometry3d const & pose : poses) {
 			++sample;
@@ -322,7 +330,8 @@ private:
 				Eigen::AngleAxisd random_angle(rd(random_generator),
 					Eigen::Vector3d(rd(random_generator), rd(random_generator), rd(random_generator)).normalized());
 
-				result.push_back(origin * robotPose(point) * dr::rotateZ(0.5 * M_PI) * random_angle);
+				result.push_back(origin * robotPose(point) * dr::rotateZ(1.0 * M_PI) * random_angle);
+				//result.push_back(origin * robotPose(point) *  random_angle);
 			}
 		}
 
@@ -331,12 +340,13 @@ private:
 
 	/// Move the robot to a given pose.
 	bool moveToPose(Eigen::Isometry3d pose) {
-		pose = pose * lookupTransform(attached_frame, "gripper_tool0", ros::Time::now());
+		pose = pose * lookupTransform(attached_frame, "ee_link", ros::Time::now());
 		apc16delft_msgs::ExecuteCalibrationMotion service;
 		service.request.calibration_pose = dr::toRosPoseStamped(pose, fixed_frame, ros::Time::now());
 		publishers.motion_goal.publish(dr::toRosPoseStamped(pose, fixed_frame, ros::Time::now()));
 
-		return services.calibration_motion.call(service);
+	//	return services.calibration_motion.call(service);
+		return doMove(service.request);
 
 
 //		moveit::planning_interface::MoveGroup::Plan plan;
@@ -361,6 +371,93 @@ private:
 //		return true;
 	}
 
+	bool doMove(apc16delft_msgs::ExecuteCalibrationMotion::Request & req) {
+
+		moveit::planning_interface::MoveGroup current_group("manipulator");
+		current_group.clearPoseTargets();
+		
+		std::vector<double> joint_value_current;
+		std::vector<double> joint_value_target;	
+		
+	//	ROS_INFO_STREAM("Getting current state");
+
+		robot_state::RobotStatePtr current_state(current_group.getCurrentState());
+		const robot_state::JointModelGroup *jmg = current_state->getJointModelGroup(current_group.getName());
+
+		current_state->copyJointGroupPositions(jmg, joint_value_current);
+
+	//	ROS_INFO_STREAM("Setting target state");
+
+		const robot_state::RobotState target_state = current_group.getJointValueTarget();
+
+		current_group.setJointValueTarget(req.calibration_pose, "ee_link");
+	//	ROS_INFO_STREAM("Setting velocity scaling");
+//		current_group.setMaxVelocityScalingFactor(0.5);
+		moveit::planning_interface::MoveGroup::Plan calibration_motion_plan;
+
+	//	ROS_INFO_STREAM("Setting current state");
+		current_group.setStartState(*current_state);
+		current_group.setPlannerId("RRTConnectkConfigDefault");
+//		current_group.setPlannerId("LBKPIECEkConfigDefault");
+
+		current_group.allowReplanning(true);
+		current_group.setNumPlanningAttempts(5);
+		
+	//	ROS_INFO_STREAM("Start planning!");
+		if(current_group.plan(calibration_motion_plan) != 1) {
+			ROS_ERROR_STREAM("No motion plan found.");
+			return false;
+		}
+	//	ROS_INFO_STREAM("Sanity checking calibration motion");
+		//std::cout << calibration_motion_plan.trajectory_.joint_trajectory << std::endl;
+		if(!checkCalibrationTrajectorySanity(calibration_motion_plan.trajectory_.joint_trajectory, &current_group)) {
+			ROS_ERROR_STREAM("Sanity check violated.");
+			return false;
+		}
+//		ROS_INFO_STREAM("Sanity check passed");
+	//	std::cout << calibration_motion_plan.trajectory_.joint_trajectory << std::endl;
+	//	ros::Duration(5.0).sleep();
+		ROS_INFO_STREAM("Executing calibration motion.");
+		current_group.execute(calibration_motion_plan);
+		return true;
+	}
+
+bool checkCalibrationTrajectorySanity(trajectory_msgs::JointTrajectory & motion_trajectory, moveit::planning_interface::MoveGroup* current_group) {
+	std::vector<double> current_joint_values;
+	double *joint_value_ptr;
+	double calibration_trajectory_tolerance_ = 3.20;
+	//trajectory_msgs::JointTrajectoryPoint starting_point = motion_trajectory.points[0];
+
+	robot_state::RobotStatePtr kinematic_state(current_group->getCurrentState());
+	//Get current joint values.
+	double joint_diff;
+	double distance = 0.0;
+	joint_value_ptr = kinematic_state->getVariablePositions();
+	const std::vector<std::string> joint_names= kinematic_state->getVariableNames();
+	//Compute distance between current state and the trajectory start state
+	std::vector<std::string>::iterator it;
+	for (size_t traj_idx = 0; traj_idx < motion_trajectory.points.size(); traj_idx++) {
+		for (size_t idx=0; idx < motion_trajectory.points[traj_idx].positions.size(); idx++) {
+			it = std::find(motion_trajectory.joint_names.begin(), motion_trajectory.joint_names.end(),joint_names[idx]);
+			int pos_idx = std::distance(motion_trajectory.joint_names.begin(), it);
+
+			joint_diff = joint_value_ptr[idx] - motion_trajectory.points[traj_idx].positions[pos_idx];
+			//Adjust starting point of cached trajectory to current position for practical reasons.
+//			motion_trajectory.points[0].positions[pos_idx] = joint_value_ptr[idx];
+			ROS_DEBUG_STREAM(joint_names[idx] <<": " << joint_value_ptr[idx]);
+			distance += (joint_diff*joint_diff);
+		}
+		distance = sqrt(distance);
+		if (distance > calibration_trajectory_tolerance_) {
+			ROS_ERROR_STREAM("Motion safety check violation, distance is " << distance << " which is above the threshold of " << calibration_trajectory_tolerance_ << ".");
+			return false;
+			break;
+		}
+	}
+	
+	return true;
+
+}
 	/// Get the pose of a calibration pattern.
 	boost::optional<Eigen::Isometry3d> getPatternPose() {
 		apc16delft_msgs::GetPose service;
@@ -414,5 +511,12 @@ private:
 int main(int argc, char * * argv) {
 	ros::init(argc, argv, ROS_PACKAGE_NAME);
 	apc16delft::CalibrationNode node;
-	ros::spin();
-}
+
+	ros::Rate loop_rate(1000);
+	while(ros::ok()) {
+		ros::spinOnce();
+		loop_rate.sleep();
+	}	
+	ros::waitForShutdown();
+	return 0;
+}	
