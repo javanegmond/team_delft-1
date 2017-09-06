@@ -11,6 +11,7 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/registration/icp.h>
+#include <pcl/registration/transformation_estimation_2D.h>
 #include <pcl/common/time.h>
 
 #include <pcl_conversions/pcl_conversions.h>
@@ -141,6 +142,10 @@ protected:
 		icp.setInputSource(model);
 		icp.setInputTarget(scene);
 		icp.setMaximumIterations(icp_max_iterations);
+
+		// Set up x-y-theta estimation
+		pcl::registration::TransformationEstimation2D<Point, Point>::Ptr estimator(new pcl::registration::TransformationEstimation2D<Point, Point>);
+		icp.setTransformationEstimation(estimator);
 
 		pcl::PointCloud<Point>::Ptr aligned_model(new PointCloud);
 		icp.align(*aligned_model, initial_guess.cast<float>().matrix());
