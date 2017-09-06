@@ -1,13 +1,13 @@
 # bin poses (w.r.t. shelf pose) and dimensions.
 
 # top row
-#bin_A
+#bin_A - Abuse this for KU Leuven FiaD demo
 "0":
-    model_path: "package://apc16delft_data/models/bins/bin_0_9.pcd"
-    collision_model_path: "package://apc16delft_data/models/bins/bin_0_9.pcd"
+    model_path: "package://etasl_vision_setup_description/data/empty_tote_cad.pcd"
+    collision_model_path: "package://etasl_vision_setup_description/data/empty_tote_cad.pcd"
     pose:
-        position:    {x: -0.40159, y: -0.438, z: 1.5537}
-        orientation: {x: 0, y: 0, z: 0, w: 1}
+        position:    {x: -0.7, y: -0.3, z: 0.765}
+        orientation: {x: 0, y: 0, z: 1, w: 0}
     dimensions:      {x: 0.268, y: 0.43, z: 0.226}
 #bin_B
 "1":
